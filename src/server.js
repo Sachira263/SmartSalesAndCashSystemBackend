@@ -3,9 +3,15 @@ const express=require("express");
 const bcrypt = require("bcryptjs");// get new package for password hashing
 const db = require('./config/db');
 
+// Import the authRoutes   
+const authRoutes = require('./routes/authRoutes');
 
 const app=express();
 const PORT=5001;
+
+app.use(express.json());// Middleware to parse JSON request bodies
+
+app.use('/api/auth', authRoutes);// Use the authRoutes for authentication-related endpoints
 
 // process of create root user automatically when server starts
 async function createRootUser() {
@@ -36,6 +42,8 @@ async function createRootUser() {
 }
 
 
+
+
 // when server starts, test connect with database
 db.query('SELECT NOW()')
   .then(() => {
@@ -54,10 +62,6 @@ app.get('/api/test', async (req, res) => {
     res.status(500).send("Database connection error");
   }
 });
-
-
-
-
 
 const server=app.listen(PORT, ()=>{
 
