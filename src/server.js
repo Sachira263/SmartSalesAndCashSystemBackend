@@ -3,6 +3,9 @@ const express=require("express");
 const bcrypt = require("bcryptjs");// get new package for password hashing
 const db = require('./config/db');
 
+// ඉහළින් Import කරන තැනට මෙයත් එකතු කරන්න
+const userRoutes = require('./routes/userRoutes');
+
 // Import the authRoutes   
 const authRoutes = require('./routes/authRoutes');
 
@@ -12,6 +15,8 @@ const PORT=5001;
 app.use(express.json());// Middleware to parse JSON request bodies
 
 app.use('/api/auth', authRoutes);// Use the authRoutes for authentication-related endpoints
+
+app.use('/api/users', userRoutes);
 
 // process of create root user automatically when server starts
 async function createRootUser() {
