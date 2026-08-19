@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # 1. Database එකේ සැකසුම
+  db:
+    image: postgres:15-alpine
+    container_name: smart_sales_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres   # pgAdmin Username 
+      POSTGRES_PASSWORD: 4564  # Database pawwword here
+      POSTGRES_DB: smart_sales_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # 2. Node.js Backend එකේ සැකසුම
+  api:
+    build: .
+    container_name: smart_sales_backend
+    restart: always
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env  # අපේ .env ගොනුව කෙලින්ම Docker එකට සම්බන්ධ කිරීම
+    depends_on:
+      - db
+
+# Database එකේ දත්ත මැකී යාම වැළැක්වීමට
+volumes:
+  pgdata:
