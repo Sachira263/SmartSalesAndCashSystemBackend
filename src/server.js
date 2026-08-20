@@ -46,9 +46,6 @@ async function createRootUser() {
     }
 }
 
-
-
-
 // when server starts, test connect with database
 db.query('SELECT NOW()')
   .then(() => {
