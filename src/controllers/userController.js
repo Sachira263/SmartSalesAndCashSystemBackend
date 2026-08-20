@@ -17,6 +17,13 @@ const createUser = async (req, res) => {
         // Check if all required fields are provided
         if (!name || !email || !password || !role) {
             return res.status(400).json({ error: "Please provide all required fields." });
+
+            
+        }
+
+        // Only Root can create another Root user
+        if (role === 'Root' && req.user.role !== 'Root') {
+            return res.status(403).json({ error: "Only Root can create another Root user." });
         }
 
         // Check if user with this email already exists
