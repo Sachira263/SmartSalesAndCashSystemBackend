@@ -95,28 +95,35 @@ const getAllUsers = async (req, res) => {
 // 5. Update User Controller
 const updateUser = async (req, res) => {
     try {
-        const { id } = req.params; // URL එකෙන් ගන්න User ID එක
-        const { name, phone_number, role, is_active } = req.body; // වෙනස් කරන්න අවශ්‍ය දත්ත
+        const { id } = req.params; 
+        // 1. මෙතනට 'email' එකත් එකතු කළා
+        const { name, email, phone_number, role, is_active } = req.body; 
 
-        // 1. මේ ID එක තියෙන යූසර් කෙනෙක් ඩේටාබේස් එකේ ඉන්නවද කියලා බලමු
         const checkUser = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
         if (checkUser.rows.length === 0) {
             return res.status(404).json({ error: "User not found" });
         }
 
-        // 2. ඩේටාබේස් එක යාවත්කාලීන කිරීම (Update Query)
-        // (අපි දෙන අලුත් අගයන් දාලා, නැතිනම් කලින් තිබුණු අගයන්ම තියාගන්න Coalesce පාවිච්චි කරන්නත් පුළුවන්, 
-        // හැබැයි මෙතැනදී සරලව නම, ෆෝන් නම්බර්, රෝල් සහ ස්ටේටස් වෙනස් වන ලෙස ලියමු)
+        // (විකල්ප) 2. අලුත් Email එක වෙන යූසර් කෙනෙක් දැනටමත් පාවිච්චි කරනවද කියලා බලන්න අවශ්‍ය නම්:
+        if (email && email !== checkUser.rows[0].email) {
+            const emailCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+            if (emailCheck.rows.length > 0) {
+                return res.status(400).json({ error: "Email is already in use by another user" });
+            }
+        }
+
+        // 3. Update Query එකට 'email' එකතු කළා සහ ඉලක්කම් ($) පිළිවෙළ වෙනස් කළා
         const updatedUser = await pool.query(
             `UPDATE users 
              SET name = COALESCE($1, name), 
-                 phone_number = COALESCE($2, phone_number), 
-                 role = COALESCE($3, role), 
-                 is_active = COALESCE($4, is_active),
+                 email = COALESCE($2, email),
+                 phone_number = COALESCE($3, phone_number), 
+                 role = COALESCE($4, role), 
+                 is_active = COALESCE($5, is_active),
                  updated_at = CURRENT_TIMESTAMP
-             WHERE id = $5 
+             WHERE id = $6 
              RETURNING id, name, email, phone_number, role, is_active, updated_at`,
-            [name, phone_number, role, is_active, id]
+            [name, email, phone_number, role, is_active, id]
         );
 
         res.status(200).json({
@@ -130,6 +137,7 @@ const updateUser = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+
 
 
 
