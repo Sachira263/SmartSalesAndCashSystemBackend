@@ -47,7 +47,6 @@ const createUser = async (req, res) => {
 };
 
 
-
 // 3. Delete User Controller (Soft Delete)
 const deleteUser = async (req, res) => {
     try {
@@ -70,10 +69,80 @@ const deleteUser = async (req, res) => {
     }
 };
 
+ 
+// 4.Get All Users Controller
+
+const getAllUsers = async (req, res) => {
+    try {
+        // ඩේටාබේස් එකෙන් සියලුම යූසර්ලා ලබා ගැනීම (password_hash හැර අනෙක් සියල්ල)
+        const users = await pool.query(
+            'SELECT id, name, email, phone_number, role, is_active, created_at FROM users ORDER BY created_at DESC'
+        );
+
+        res.status(200).json({
+            success: true,
+            count: users.rows.length,
+            users: users.rows
+        });
+
+    } catch (error) {
+        console.error("Error in getAllUsers:", error.message);
+        res.status(500).json({ error: "Server Error" });
+    }
+};
+
+
+// 5. Update User Controller
+const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params; // URL එකෙන් ගන්න User ID එක
+        const { name, phone_number, role, is_active } = req.body; // වෙනස් කරන්න අවශ්‍ය දත්ත
+
+        // 1. මේ ID එක තියෙන යූසර් කෙනෙක් ඩේටාබේස් එකේ ඉන්නවද කියලා බලමු
+        const checkUser = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        if (checkUser.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // 2. ඩේටාබේස් එක යාවත්කාලීන කිරීම (Update Query)
+        // (අපි දෙන අලුත් අගයන් දාලා, නැතිනම් කලින් තිබුණු අගයන්ම තියාගන්න Coalesce පාවිච්චි කරන්නත් පුළුවන්, 
+        // හැබැයි මෙතැනදී සරලව නම, ෆෝන් නම්බර්, රෝල් සහ ස්ටේටස් වෙනස් වන ලෙස ලියමු)
+        const updatedUser = await pool.query(
+            `UPDATE users 
+             SET name = COALESCE($1, name), 
+                 phone_number = COALESCE($2, phone_number), 
+                 role = COALESCE($3, role), 
+                 is_active = COALESCE($4, is_active),
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE id = $5 
+             RETURNING id, name, email, phone_number, role, is_active, updated_at`,
+            [name, phone_number, role, is_active, id]
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "User updated successfully",
+            user: updatedUser.rows[0]
+        });
+
+    } catch (error) {
+        console.error("Error in updateUser:", error.message);
+        res.status(500).json({ error: "Server Error" });
+    }
+};
+
+
+
+
 module.exports = {
     testAuth,
     createUser,
-    deleteUser
+    deleteUser,
+    getAllUsers,
+    updateUser
 };
+
+
+
 
 
