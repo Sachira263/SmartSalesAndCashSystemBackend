@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const pool = require('../config/db'); // Database connection pool
 
 // 1. Test Auth Controller (Created at 2026/8/19)
