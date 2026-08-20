@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { testAuth, createUser } = require('../controllers/userController');
+const { testAuth, createUser,deleteUser } = require('../controllers/userController');
 
 // Controllers සහ Middlewares මෙතැනට Import කරගැනීම
 
@@ -11,6 +11,9 @@ router.get('/test', verifyToken, checkRole(['Root']), testAuth);
 
 //root use can create new user
 router.post('/create', verifyToken, checkRole(['Root']), createUser);
+
+//root use can delete user
+router.delete('/delete/:id', verifyToken, checkRole(['Root']), deleteUser);
 
 module.exports = router;
 
